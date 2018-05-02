@@ -1,6 +1,33 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
-from datetime import datetime, timedelta
+from scipy.stats import linregress
+from datetime import datetime
+
+def annotate(ax, line_one, p_value):
+    '''Annotate an Axes with inferential stats
+    
+    line_one is a string to be printed first in the annotation
+    '''
+    # Print lines_one and p 
+    note = ax.text(0.5, 0.1, line_one + '\np=' + '%.2f'%p_value,
+	            transform=ax.transAxes) # changes lowerleft coordinates of
+	        # text to be Figure coordinates instead of Axes coordinates
+	            
+	        # The '%.2f'%p is formattingstring%variables.
+	        # The formattingstring is '%.2f' which takes a float and creates
+	        # a string of digits followed by a decimal and two more digits.
+	    
+    # Two dictionaries of matplotlib.patch.Patch properties
+    # for p<0.5
+    properties_yes = dict(boxstyle='round', facecolor='lime', alpha=0.6) 
+    # for p>=0.5
+    properties_no = dict(boxstyle='round', facecolor='white', alpha=0.6)
+    # Set significant coorelations with these properties
+    if p_value<0.05:
+        note.set_bbox(properties_yes)
+    else:
+        note.set_bbox(properties_no)
 
 disaster_file = open("files/earthquake.csv")
 pgr_file = open("files/PGR1.csv")
@@ -29,23 +56,121 @@ print tornadoes
 '''
 
 magnitudes = []
-dates = []
+earthquake_dates = []
+data = []
 for i in range(len(disaster)):
-    magnitudes.append(disaster["mag"][i])
-    dates.append(disaster["time"][i][0:10])
-    print magnitudes[i], dates[i]
+    date = disaster["time"][i][0:10]
+    mag_max = disaster["mag"][i]
+    if (date not in earthquake_dates and i<len(disaster)):
+        done = False
+        j = i
+        while (not done and j<len(disaster)-1):
+            j+=1
+            if (disaster["time"][j][0:10] == date):
+                if (disaster["mag"][j] > mag_max):
+                    mag_max = disaster["mag"][j]
+            else:
+                done = True
+        if (True):
+            earthquake_dates.append(date)
+            magnitudes.append(mag_max)
+            data.append([date, mag_max])
+    
+for item in data:
+    print item
 
-pgr_performance = []
-sum1 = 0
-num = 0
-for i in range(len(pgr)):
-    if (pgr["Date"][i] in dates):
-        percent = ((pgr["Close"][i] - pgr["Open"][i]) / pgr["Open"][i]) *100
-        pgr_performance.append((pgr["Date"][i], percent))
-        sum1 += percent
-        num+=1
 
-print sum1/num
+def stock_info(stock):
+    stock_performance = []
+    stock_prices = []
+    stock_dates = []
+    sum1 = 0
+    num = 0
+    for i in range(len(stock)-1):
+        if (stock["Date"][i] in earthquake_dates):
+            stock_dates.append(stock["Date"][i])
+            stock_prices.append(stock["Open"][i])
+            percent = ((stock["Open"][i+1] - stock["Open"][i]) / stock["Open"][i]) *100
+            stock_performance.append(percent)
+            sum1 += percent
+            num+=1
+    
+    dates = []
+    new_magnitudes = []
+    for i in range(len(earthquake_dates)):
+        if (earthquake_dates[i] in stock_dates):
+            dates.append(earthquake_dates[i])
+            new_magnitudes.append(magnitudes[i])
+            
+    return [new_magnitudes, stock_performance, dates, stock_prices]
+    
+def show_stock_data(data, ax, company):
+    ax.plot(data[0], data[1], "ro")
+    # find best-fit line
+    m, b, r, p, E = linregress(data[0], data[1])
+   	    
+    # Draw the best fit line in blue
+    # Create values on best-fit line
+    xmin, xmax = ax.get_xlim()
+    x = np.linspace(xmin, xmax)
+    y = m*x + b
+    # Plot best fit line
+    ax.plot(x, y, 'b-')
+   	    
+    # Notate the linear correlation
+    stat_string = '$r^2$=' + str(int(r**2*100)) + '%'
+    annotate(ax, stat_string, p)
+    ax.set_title("Effect of Earthquake Magnitude on " + company + " Stock Performance", fontsize = 10)
+    ax.set_xlabel("Magnitude (Richter Scale)")
+    ax.set_ylabel("Stock Percent Change (%)")
+    
 
-print pgr_performance
+def show_comparison_data(data, ax, company_a, company_b):
+    ax.plot(data[0], data[1], "go")
+    # find best-fit line
+    m, b, r, p, E = linregress(data[0], data[1])
+   	    
+    # Draw the best fit line in blue
+    # Create values on best-fit line
+    xmin, xmax = ax.get_xlim()
+    x = np.linspace(xmin, xmax)
+    y = m*x + b
+    # Plot best fit line
+    ax.plot(x, y, 'b-')
+   	    
+    # Notate the linear correlation
+    stat_string = '$r^2$=' + str(int(r**2*100)) + '%'
+    annotate(ax, stat_string, p)
+    ax.set_title("Correlation of Stock Performance of " + company_a + " and " + company_b)
+    ax.set_xlabel("Stock Percent Change of " + company_a + " (%)")
+    ax.set_ylabel("Stock Percent Change of " + company_a + " (%)")
 
+pgr_data = stock_info(pgr)
+alls_data = stock_info(alls)
+aig_data = stock_info(aig)
+pgr_alls_comparison = [stock_info(pgr)[1], stock_info(alls)[1]]
+pgr_aig_comparison = [stock_info(pgr)[1], stock_info(aig)[1]]
+alls_aig_comparison = [stock_info(alls)[1], stock_info(aig)[1]]
+
+fig, ax = plt.subplots(2, 3)
+show_stock_data(pgr_data, ax[0][0], "Progressive")
+show_stock_data(alls_data, ax[0][1], "Allstate")
+show_stock_data(aig_data, ax[0][2], "AIG")
+
+show_comparison_data(pgr_alls_comparison, ax[1][0], "Progressive", "Allstate")
+show_comparison_data(pgr_aig_comparison, ax[1][1], "Progressive", "AIG")
+show_comparison_data(alls_aig_comparison, ax[1][2], "Allstate", "AIG")
+
+date_values = []
+for item in pgr_data[2]:
+    date_values.append(datetime.strptime(item, '%Y-%m-%d'))
+
+radii = []
+for item in pgr_data[0]:
+    radii.append(3*(item-4.5)**4)
+
+fig2, ax2 = plt.subplots(1, 1)
+ax2.plot(date_values, pgr_data[3])
+ax2.scatter(date_values, [0]*len(date_values), s=radii)
+fig2.show()
+fig.show()
