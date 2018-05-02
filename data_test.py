@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import linregress
 from datetime import datetime
+import matplotlib.patches as mpatches
 
 def annotate(ax, line_one, p_value):
     '''Annotate an Axes with inferential stats
@@ -33,10 +34,12 @@ disaster_file = open("files/earthquake.csv")
 pgr_file = open("files/PGR1.csv")
 alls_file = open("files/ALL.csv")
 aig_file = open("files/Aig1973.csv")
+dow_file = open("files/DowJones1985.csv")
 disaster = pd.read_csv(disaster_file)
 pgr = pd.read_csv(pgr_file)
 alls = pd.read_csv(alls_file)
 aig = pd.read_csv(aig_file)
+dow = pd.read_csv(dow_file)
 
 '''
 disaster["Tornado"] = float("NaN")
@@ -145,14 +148,37 @@ def show_comparison_data(data, ax, company_a, company_b):
     ax.set_xlabel("Stock Percent Change of " + company_a + " (%)")
     ax.set_ylabel("Stock Percent Change of " + company_a + " (%)")
 
+def show_data_visualization(data, ax, company):
+    date_values = []
+    for item in data[2]:
+        date_values.append(datetime.strptime(item, '%Y-%m-%d'))
+    
+    radii = []
+    for item in data[0]:
+        radii.append(3*(item-4.5)**4)
+    
+    ax.plot(date_values, data[3])
+    ax.scatter(date_values, [0]*len(date_values), s=radii, c="#ffa100")
+    ax.set_title("Earthquake Magnitude and Stock Price of " + company + " Over Time", fontsize = 10)
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Stock Price")
+    patch = mpatches.Patch(color='#ffa100', label='Earthquake Magnitude (represented by size)')
+    ax.legend(handles=[patch])
+
 pgr_data = stock_info(pgr)
 alls_data = stock_info(alls)
 aig_data = stock_info(aig)
+dow_data = stock_info(dow)
 pgr_alls_comparison = [stock_info(pgr)[1], stock_info(alls)[1]]
 pgr_aig_comparison = [stock_info(pgr)[1], stock_info(aig)[1]]
 alls_aig_comparison = [stock_info(alls)[1], stock_info(aig)[1]]
 
 fig, ax = plt.subplots(2, 3)
+fig2, ax2 = plt.subplots(1, 1)
+fig3, ax3 = plt.subplots(1, 1)
+fig4, ax4 = plt.subplots(1, 1)
+fig5, ax5 = plt.subplots(1, 1)
+
 show_stock_data(pgr_data, ax[0][0], "Progressive")
 show_stock_data(alls_data, ax[0][1], "Allstate")
 show_stock_data(aig_data, ax[0][2], "AIG")
@@ -161,16 +187,13 @@ show_comparison_data(pgr_alls_comparison, ax[1][0], "Progressive", "Allstate")
 show_comparison_data(pgr_aig_comparison, ax[1][1], "Progressive", "AIG")
 show_comparison_data(alls_aig_comparison, ax[1][2], "Allstate", "AIG")
 
-date_values = []
-for item in pgr_data[2]:
-    date_values.append(datetime.strptime(item, '%Y-%m-%d'))
+show_data_visualization(pgr_data, ax2, "Progressive")
+show_data_visualization(alls_data, ax3, "Allstate")
+show_data_visualization(aig_data, ax4, "AIG")
+show_data_visualization(dow_data, ax5, "Dow Jones")
 
-radii = []
-for item in pgr_data[0]:
-    radii.append(3*(item-4.5)**4)
-
-fig2, ax2 = plt.subplots(1, 1)
-ax2.plot(date_values, pgr_data[3])
-ax2.scatter(date_values, [0]*len(date_values), s=radii)
-fig2.show()
 fig.show()
+fig2.show()
+fig3.show()
+fig4.show()
+fig5.show()
