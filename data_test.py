@@ -123,9 +123,11 @@ def show_stock_data(data, ax, company):
     # Notate the linear correlation
     stat_string = '$r^2$=' + str(int(r**2*100)) + '%'
     annotate(ax, stat_string, p)
-    ax.set_title("Effect of Earthquake Magnitude on " + company + " Stock Performance", fontsize = 10)
+    ax.set_title("Effect of Earthquake Magnitude on " + company + " Stock Performance", fontsize = 12)
     ax.set_xlabel("Magnitude (Richter Scale)")
     ax.set_ylabel("Stock Percent Change (%)")
+    ax.grid(b = True, which="major", color="grey", ls="--")
+    ax.set_facecolor('floralwhite')
     
 
 def show_comparison_data(data, ax, company_a, company_b):
@@ -144,9 +146,11 @@ def show_comparison_data(data, ax, company_a, company_b):
     # Notate the linear correlation
     stat_string = '$r^2$=' + str(int(r**2*100)) + '%'
     annotate(ax, stat_string, p)
-    ax.set_title("Correlation of Stock Performance of " + company_a + " and " + company_b)
+    ax.set_title("Correlation of Stock Performance of " + company_a + " and " + company_b, fontsize = 12)
     ax.set_xlabel("Stock Percent Change of " + company_a + " (%)")
     ax.set_ylabel("Stock Percent Change of " + company_a + " (%)")
+    ax.grid(b = True, which="major", color="grey", ls="--")
+    ax.set_facecolor('floralwhite')
 
 def show_data_visualization(data, ax, company):
     date_values = []
@@ -159,11 +163,13 @@ def show_data_visualization(data, ax, company):
     
     ax.plot(date_values, data[3])
     ax.scatter(date_values, [0]*len(date_values), s=radii, c="#ffa100")
-    ax.set_title("Earthquake Magnitude and Stock Price of " + company + " Over Time", fontsize = 10)
+    ax.set_title("Earthquake Magnitude and Stock Price of " + company + " Over Time")
     ax.set_xlabel("Time")
-    ax.set_ylabel("Stock Price")
+    ax.set_ylabel("Stock Price ($)")
     patch = mpatches.Patch(color='#ffa100', label='Earthquake Magnitude (represented by size)')
     ax.legend(handles=[patch])
+    ax.grid(b = True, which="major", color="grey", ls="--")
+    ax.set_facecolor('floralwhite')
 
 pgr_data = stock_info(pgr)
 alls_data = stock_info(alls)
@@ -191,6 +197,8 @@ show_data_visualization(pgr_data, ax2, "Progressive")
 show_data_visualization(alls_data, ax3, "Allstate")
 show_data_visualization(aig_data, ax4, "AIG")
 show_data_visualization(dow_data, ax5, "Dow Jones")
+
+plt.rcParams.update({"font.size": 14, "font.family": "times new roman"})
 
 fig.show()
 fig2.show()
