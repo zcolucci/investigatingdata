@@ -78,9 +78,6 @@ for i in range(len(disaster)):
             earthquake_dates.append(date)
             magnitudes.append(mag_max)
             data.append([date, mag_max])
-    
-for item in data:
-    print item
 
 
 def stock_info(stock):
@@ -185,6 +182,8 @@ fig3, ax3 = plt.subplots(1, 1)
 fig4, ax4 = plt.subplots(1, 1)
 fig5, ax5 = plt.subplots(1, 1)
 
+plt.subplots_adjust(hspace = 0.5)
+
 show_stock_data(pgr_data, ax[0][0], "Progressive")
 show_stock_data(alls_data, ax[0][1], "Allstate")
 show_stock_data(aig_data, ax[0][2], "AIG")
@@ -199,6 +198,7 @@ show_data_visualization(aig_data, ax4, "AIG")
 show_data_visualization(dow_data, ax5, "Dow Jones")
 
 plt.rcParams.update({"font.size": 14, "font.family": "times new roman"})
+fig.subplots_adjust(hspace = 0.3)
 
 fig.show()
 fig2.show()
