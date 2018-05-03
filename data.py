@@ -30,81 +30,74 @@ def annotate(ax, line_one, p_value):
     else:
         note.set_bbox(properties_no)
 
+#open all files to be used
 disaster_file = open("files/earthquake.csv")
 pgr_file = open("files/PGR1.csv")
 alls_file = open("files/ALL.csv")
 aig_file = open("files/Aig1973.csv")
 dow_file = open("files/DowJones1985.csv")
+
+#read csv files and save as objects
 disaster = pd.read_csv(disaster_file)
 pgr = pd.read_csv(pgr_file)
 alls = pd.read_csv(alls_file)
 aig = pd.read_csv(aig_file)
 dow = pd.read_csv(dow_file)
 
-'''
-disaster["Tornado"] = float("NaN")
-disaster["Tornado"][disaster["Disaster Type"] == "Tornado"] = 1
-disaster["Tornado"][disaster["Disaster Type"] != "Tornado"] = 0
-
-print disaster["Tornado"]
-
-tornadoes = []
-ids = []
-for i in range(len(disaster)):
-    if (disaster["Disaster Type"][i] == "Earthquake"):
-        if (disaster["Declaration Number"][i] not in ids):
-            tornadoes.append(disaster["Start Date"][i])
-            ids.append(disaster["Declaration Number"][i])
-print tornadoes
-'''
-
+#initialize arrays for magnitudes and respective dates
 magnitudes = []
 earthquake_dates = []
-data = []
-for i in range(len(disaster)):
-    date = disaster["time"][i][0:10]
-    mag_max = disaster["mag"][i]
-    if (date not in earthquake_dates and i<len(disaster)):
+for i in range(len(disaster)): #iterate through all rows in the disaster csv file
+    date = disaster["time"][i][0:10] #save the date of the earthquake
+    mag_max = disaster["mag"][i] #save the magnitude of the first earthquake on the day
+    if (date not in earthquake_dates and i<len(disaster)): #if the saved date isn't already in the list of dates
         done = False
         j = i
-        while (not done and j<len(disaster)-1):
+        while (not done and j<len(disaster)-1): #iterate through all earthquakes with the same date
             j+=1
             if (disaster["time"][j][0:10] == date):
                 if (disaster["mag"][j] > mag_max):
-                    mag_max = disaster["mag"][j]
+                    mag_max = disaster["mag"][j] #replace the maximum magnitude if current magnitude is higher
             else:
-                done = True
-        if (True):
-            earthquake_dates.append(date)
-            magnitudes.append(mag_max)
-            data.append([date, mag_max])
+                done = True #quit when finished
+        earthquake_dates.append(date) #add date to list of dates
+        magnitudes.append(mag_max) #add magnitude to list of magnitudes
 
 
 def stock_info(stock):
+    """ 
+    Takes in a csv file to read
+    Returns data about the stock including stock performances and stock prices
+    """
+    
+    #initialize stock performance, prices, and dates arrays
     stock_performance = []
     stock_prices = []
     stock_dates = []
-    sum1 = 0
-    num = 0
-    for i in range(len(stock)-1):
-        if (stock["Date"][i] in earthquake_dates):
-            stock_dates.append(stock["Date"][i])
-            stock_prices.append(stock["Open"][i])
-            percent = ((stock["Open"][i+1] - stock["Open"][i]) / stock["Open"][i]) *100
-            stock_performance.append(percent)
-            sum1 += percent
-            num+=1
+    for i in range(len(stock)-1): #iterate through stock file
+        if (stock["Date"][i] in earthquake_dates): #if the date of the stock is the date of an earthquake
+            stock_dates.append(stock["Date"][i]) #add the date to a list
+            stock_prices.append(stock["Open"][i]) #add the opening price to a list
+            percent = ((stock["Open"][i+1] - stock["Open"][i]) / stock["Open"][i]) *100 #calculate the percent change
+            stock_performance.append(percent) #add the percent change to a list
+    
+    #initialize arrays for dates and new magnitudes
     
     dates = []
     new_magnitudes = []
-    for i in range(len(earthquake_dates)):
-        if (earthquake_dates[i] in stock_dates):
-            dates.append(earthquake_dates[i])
-            new_magnitudes.append(magnitudes[i])
+    for i in range(len(earthquake_dates)): #iterate through earthquake dates
+        if (earthquake_dates[i] in stock_dates): #if the date is in the list of stock dates
+            dates.append(earthquake_dates[i]) #add date to new list
+            new_magnitudes.append(magnitudes[i]) #add magnitude to new list
             
     return [new_magnitudes, stock_performance, dates, stock_prices]
     
 def show_stock_data(data, ax, company):
+    '''
+    Plots a scatter plot of data comparing magnitude and stock percent change
+    Shows the line of best fit and r^2 value
+    Adds title, axis, text, and color information
+    '''
     ax.plot(data[0], data[1], "ro")
     # find best-fit line
     m, b, r, p, E = linregress(data[0], data[1])
@@ -120,14 +113,25 @@ def show_stock_data(data, ax, company):
     # Notate the linear correlation
     stat_string = '$r^2$=' + str(int(r**2*100)) + '%'
     annotate(ax, stat_string, p)
+    
+    #add title, x label, and y label
     ax.set_title("Effect of Earthquake Magnitude on " + company + " Stock Performance", fontsize = 12)
     ax.set_xlabel("Magnitude (Richter Scale)")
     ax.set_ylabel("Stock Percent Change (%)")
+    
+    #add grid
     ax.grid(b = True, which="major", color="grey", ls="--")
+    
+    #change background color
     ax.set_facecolor('floralwhite')
     
 
 def show_comparison_data(data, ax, company_a, company_b):
+    '''
+    Plots a scatter plot of data comparing stock percent changes of different companies
+    Shows the line of best fit and r^2 value
+    Adds title, axis, text, and color information
+    '''
     ax.plot(data[0], data[1], "go")
     # find best-fit line
     m, b, r, p, E = linregress(data[0], data[1])
@@ -143,63 +147,91 @@ def show_comparison_data(data, ax, company_a, company_b):
     # Notate the linear correlation
     stat_string = '$r^2$=' + str(int(r**2*100)) + '%'
     annotate(ax, stat_string, p)
+    
+    #add title, x label, and y label
     ax.set_title("Correlation of Stock Performance of " + company_a + " and " + company_b, fontsize = 12)
     ax.set_xlabel("Stock Percent Change of " + company_a + " (%)")
     ax.set_ylabel("Stock Percent Change of " + company_a + " (%)")
+    
+    #add grid
     ax.grid(b = True, which="major", color="grey", ls="--")
+    
+    #change background color
     ax.set_facecolor('floralwhite')
 
 def show_data_visualization(data, ax, company):
+    """
+    Show a line graph of stock price data with earthquake magnitude
+    Adds title, axis, text, color, and legend information
+    """
+    
+    #get the value of each date as a datetime object
     date_values = []
     for item in data[2]:
         date_values.append(datetime.strptime(item, '%Y-%m-%d'))
     
+    #calculate the radius of the earthquake point based on magnitude
     radii = []
     for item in data[0]:
         radii.append(3*(item-4.5)**4)
     
+    #plot line graph
     ax.plot(date_values, data[3])
+    #plot scatter graph
     ax.scatter(date_values, [0]*len(date_values), s=radii, c="#ffa100")
+    #add title, x label, and y label
     ax.set_title("Earthquake Magnitude and Stock Price of " + company + " Over Time")
     ax.set_xlabel("Time")
     ax.set_ylabel("Stock Price ($)")
+    #create legened
     patch = mpatches.Patch(color='#ffa100', label='Earthquake Magnitude (represented by size)')
+    #add legend
     ax.legend(handles=[patch])
+    #add grid
     ax.grid(b = True, which="major", color="grey", ls="--")
+    #change background color
     ax.set_facecolor('floralwhite')
 
+#get and save data of each stock 
 pgr_data = stock_info(pgr)
 alls_data = stock_info(alls)
 aig_data = stock_info(aig)
 dow_data = stock_info(dow)
-pgr_alls_comparison = [stock_info(pgr)[1], stock_info(alls)[1]]
-pgr_aig_comparison = [stock_info(pgr)[1], stock_info(aig)[1]]
-alls_aig_comparison = [stock_info(alls)[1], stock_info(aig)[1]]
+#get comparison data between each stock
+pgr_alls_comparison = [pgr_data[1], alls_data[1]]
+pgr_aig_comparison = [pgr_data[1], aig_data[1]]
+alls_aig_comparison = [alls_data[1], aig_data[1]]
 
+#initialize figures and axes
 fig, ax = plt.subplots(2, 3)
 fig2, ax2 = plt.subplots(1, 1)
 fig3, ax3 = plt.subplots(1, 1)
 fig4, ax4 = plt.subplots(1, 1)
 fig5, ax5 = plt.subplots(1, 1)
 
-plt.subplots_adjust(hspace = 0.5)
-
+#show stock data for three stocks
 show_stock_data(pgr_data, ax[0][0], "Progressive")
 show_stock_data(alls_data, ax[0][1], "Allstate")
 show_stock_data(aig_data, ax[0][2], "AIG")
 
+#show comparison data for three stocks
 show_comparison_data(pgr_alls_comparison, ax[1][0], "Progressive", "Allstate")
 show_comparison_data(pgr_aig_comparison, ax[1][1], "Progressive", "AIG")
 show_comparison_data(alls_aig_comparison, ax[1][2], "Allstate", "AIG")
 
+#show data visualization of four stocks
 show_data_visualization(pgr_data, ax2, "Progressive")
 show_data_visualization(alls_data, ax3, "Allstate")
 show_data_visualization(aig_data, ax4, "AIG")
 show_data_visualization(dow_data, ax5, "Dow Jones")
 
+#update font size and type
 plt.rcParams.update({"font.size": 14, "font.family": "times new roman"})
+
+#reduce overlapping of first graph
 fig.subplots_adjust(hspace = 0.3)
 
+#show all figures
 fig.show()
 fig2.show()
 fig3.show()
