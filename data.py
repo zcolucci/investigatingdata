@@ -46,10 +46,12 @@ dow = pd.read_csv(dow_file)
 
 #initialize arrays for magnitudes and respective dates
 magnitudes = []
+all_magnitudes = []
 earthquake_dates = []
 for i in range(len(disaster)): #iterate through all rows in the disaster csv file
     date = disaster["time"][i][0:10] #save the date of the earthquake
     mag_max = disaster["mag"][i] #save the magnitude of the first earthquake on the day
+    all_magnitudes.append(disaster["mag"][i])
     if (date not in earthquake_dates and i<len(disaster)): #if the saved date isn't already in the list of dates
         done = False
         j = i
@@ -192,6 +194,20 @@ def show_data_visualization(data, ax, company):
     #change background color
     ax.set_facecolor('floralwhite')
 
+def show_histogram(ax):
+    ax.hist(all_magnitudes, color="#e06dde", bins=7)
+
+    #add title, x label, and y label
+    ax.set_title("Frequency of Earthquakes by Magnitude")
+    ax.set_xlabel("Magnitude")
+    ax.set_ylabel("Frequency")
+    
+    #add grid
+    ax.grid(b = True, which="major", color="grey", ls="--")
+    
+    #change background color
+    ax.set_facecolor('floralwhite')
+
 #get and save data of each stock 
 pgr_data = stock_info(pgr)
 alls_data = stock_info(alls)
@@ -208,11 +224,15 @@ fig2, ax2 = plt.subplots(1, 1)
 fig3, ax3 = plt.subplots(1, 1)
 fig4, ax4 = plt.subplots(1, 1)
 fig5, ax5 = plt.subplots(1, 1)
+fig6, ax6 = plt.subplots(1, 1)
 
 #show stock data for three stocks
 show_stock_data(pgr_data, ax[0][0], "Progressive")
 show_stock_data(alls_data, ax[0][1], "Allstate")
 show_stock_data(aig_data, ax[0][2], "AIG")
+
+#reduce overlapping of first graphs
+fig.subplots_adjust(hspace = 0.3)
 
 #show comparison data for three stocks
 show_comparison_data(pgr_alls_comparison, ax[1][0], "Progressive", "Allstate")
@@ -225,11 +245,11 @@ show_data_visualization(alls_data, ax3, "Allstate")
 show_data_visualization(aig_data, ax4, "AIG")
 show_data_visualization(dow_data, ax5, "Dow Jones")
 
+#show histogram of magntidues
+show_histogram(ax6)
+
 #update font size and type
 plt.rcParams.update({"font.size": 14, "font.family": "times new roman"})
-
-#reduce overlapping of first graph
-fig.subplots_adjust(hspace = 0.3)
 
 #show all figures
 fig.show()
@@ -237,3 +257,4 @@ fig2.show()
 fig3.show()
 fig4.show()
 fig5.show()
+fig6.show()
