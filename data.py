@@ -153,7 +153,7 @@ def show_comparison_data(data, ax, company_a, company_b):
     #add title, x label, and y label
     ax.set_title("Correlation of Stock Performance of " + company_a + " and " + company_b, fontsize = 12)
     ax.set_xlabel("Stock Percent Change of " + company_a + " (%)")
-    ax.set_ylabel("Stock Percent Change of " + company_a + " (%)")
+    ax.set_ylabel("Stock Percent Change of " + company_b + " (%)")
     
     #add grid
     ax.grid(b = True, which="major", color="grey", ls="--")
@@ -182,9 +182,9 @@ def show_data_visualization(data, ax, company):
     #plot scatter graph
     ax.scatter(date_values, [0]*len(date_values), s=radii, c="#ffa100")
     #add title, x label, and y label
-    ax.set_title("Earthquake Magnitude and Stock Price of " + company + " Over Time")
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Stock Price ($)")
+    ax.set_title("Earthquake Magnitude and Stock Price of " + company + " Over Time", fontsize=30)
+    ax.set_xlabel("Time", fontsize=24)
+    ax.set_ylabel("Stock Price ($)", fontsize=24)
     #create legened
     patch = mpatches.Patch(color='#ffa100', label='Earthquake Magnitude (represented by size)')
     #add legend
@@ -195,11 +195,12 @@ def show_data_visualization(data, ax, company):
     ax.set_facecolor('floralwhite')
 
 def show_histogram(ax):
+    #create histogram
     ax.hist(all_magnitudes, color="#e06dde", bins=7)
 
     #add title, x label, and y label
     ax.set_title("Frequency of Earthquakes by Magnitude")
-    ax.set_xlabel("Magnitude")
+    ax.set_xlabel("Magnitude (Richter Scale)")
     ax.set_ylabel("Frequency")
     
     #add grid
